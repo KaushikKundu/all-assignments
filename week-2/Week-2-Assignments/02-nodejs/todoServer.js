@@ -43,7 +43,47 @@ const express = require('express');
 const bodyParser = require('body-parser');
 
 const app = express();
-
 app.use(bodyParser.json());
+
+app.get('/todos/:id', (req,res) => {
+  const id = parseInt(req.params.id); // user asking for this id
+  const todo = todos.find((todo) => todo.id === id); // checking if that id is present 
+  todo ? res.status(200).json(todo) : res.status(404).json({error: "item not found"});
+
+});
+
+app.get('/todos',(req,res) => { 
+  res.send(JSON.stringify(todos));
+})
+
+app.post('/todos/', (req,res) =>{
+  const {title, completed, description} = req.body; // [0,1,2,todo]
+  const newId = todos.length > 0 ? 
+    todos.length + 1 : 1;
+  let todoItem = {
+    id: newId,
+    title,
+    completed,
+    description: description || ''
+  }
+  todos.push(todoItem);
+
+  res.status(201).json({id:newId});
+});
+
+app.put('/todos/:id', (req,res) => {
+  const {title, completed} = req.body;
+  const id = req.params.id;
+  const todoIndex = todos.findIndex(todo =>  todo.id === id);
+
+  if(todoIndex !== -1) {
+    todos[todoIndex].title : title || todos[todoIndex].title;
+    todos[todo.id - 1].completed:completed ;
+    res.status(200).json({message: "Todo updated successfully."})
+  } else {
+    res.status(404).json({error: "Item not found"});
+  }
+});
+
 
 module.exports = app;
