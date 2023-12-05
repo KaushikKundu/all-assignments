@@ -40,8 +40,9 @@
   Testing the server - run `npm run test-todoServer` command in terminal
  */
 const express = require('express');
+const todos = require('./files/data');
 const bodyParser = require('body-parser');
-
+const port = 3000;
 const app = express();
 app.use(bodyParser.json());
 
@@ -77,13 +78,26 @@ app.put('/todos/:id', (req,res) => {
   const todoIndex = todos.findIndex(todo =>  todo.id === id);
 
   if(todoIndex !== -1) {
-    todos[todoIndex].title : title || todos[todoIndex].title;
-    todos[todo.id - 1].completed:completed ;
+    todos[todoIndex].title = title || todos[todoIndex].title;
+    todos[todo.id - 1].completed=completed ;
     res.status(200).json({message: "Todo updated successfully."})
   } else {
     res.status(404).json({error: "Item not found"});
   }
 });
 
+app.delete('/todos/:id', (req,res)=>{
+  const id = req.params.id;
+  const todoIndex = todos.findIndex(todo => todo.id === id);
+  if(todoIndex !== -1){
+    todos.splice(todoIndex,1);
+    res.status(200).json({message: "item deleted successfully"})
+  }else{
+    res.status(404).json({error: "item not found"});
+  }
+})
 
+app.listen(3000, () => {
+  console.log('Server is running on port 3000');
+});
 module.exports = app;
