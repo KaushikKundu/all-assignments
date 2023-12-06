@@ -39,65 +39,91 @@
 
   Testing the server - run `npm run test-todoServer` command in terminal
  */
-const express = require('express');
-const todos = require('./files/data');
-const bodyParser = require('body-parser');
+const express = require("express");
+const fs = require("fs");
+//const todos = require("./todos.json");
+
+const bodyParser = require("body-parser");
 const port = 3000;
 const app = express();
 app.use(bodyParser.json());
 
-app.get('/todos/:id', (req,res) => {
-  const id = parseInt(req.params.id); // user asking for this id
-  const todo = todos.find((todo) => todo.id === id); // checking if that id is present 
-  todo ? res.status(200).json(todo) : res.status(404).json({error: "item not found"});
+const findIndex = (arr, id) => {
+  if (id >= 0 && id <= arr.length) {
+    return id -1;
+  } else {
+    return -1;
+  }
+};
 
+app.get("/todos/:id", (req, res) => {
+  const id = parseInt(req.params.id); // user asking for this id
+
+  fs.readFile("./todos.json", "utf-8", (err, data) => {
+    const todos = JSON.parse(data);
+    const todoIndex = findIndex(todos,id); // checking if that id is present
+
+    try{
+      if(todoIndex !== -1){
+        res.status(201).json(todos);
+      }else{
+        res.status(404).json({error:"item not found"})
+      }
+    }
+    catch(error){
+      res.status(404).json({error:"error parsing data"});
+    }
+  });
 });
 
-app.get('/todos',(req,res) => { 
-  res.send(JSON.stringify(todos));
-})
+app.get("/todos", (req, res) => {
+  fs.readFile("todos.json", "utf-8", (err,data)=>{
+    if(err) throw err;
+    res.send(JSON.parse(data));
+    //res.json(data);
+  });
+});
 
-app.post('/todos/', (req,res) =>{
-  const {title, completed, description} = req.body; // [0,1,2,todo]
-  const newId = todos.length > 0 ? 
-    todos.length + 1 : 1;
+app.post("/todos/", (req, res) => {
+  const { title, completed, description } = req.body; // [0,1,2,todo]
+  const newId = todos.length > 0 ? todos.length + 1 : 1;
   let todoItem = {
     id: newId,
     title,
     completed,
-    description: description || ''
-  }
+    description: description || "",
+  };
   todos.push(todoItem);
 
-  res.status(201).json({id:newId});
+  res.status(201).json({ id: newId });
 });
 
-app.put('/todos/:id', (req,res) => {
-  const {title, completed} = req.body;
+app.put("/todos/:id", (req, res) => {
+  const { title, completed } = req.body;
   const id = req.params.id;
-  const todoIndex = todos.findIndex(todo =>  todo.id === id);
+  const todoIndex = todos.findIndex((todo) => todo.id === id);
 
-  if(todoIndex !== -1) {
+  if (todoIndex !== -1) {
     todos[todoIndex].title = title || todos[todoIndex].title;
-    todos[todo.id - 1].completed=completed ;
-    res.status(200).json({message: "Todo updated successfully."})
+    todos[todoIndex].completed = completed;
+    res.status(200).json({ message: "Todo updated successfully." });
   } else {
-    res.status(404).json({error: "Item not found"});
+    res.status(404).json({ error: "Item not found" });
   }
 });
 
-app.delete('/todos/:id', (req,res)=>{
+app.delete("/todos/:id", (req, res) => {
   const id = req.params.id;
-  const todoIndex = todos.findIndex(todo => todo.id === id);
-  if(todoIndex !== -1){
-    todos.splice(todoIndex,1);
-    res.status(200).json({message: "item deleted successfully"})
-  }else{
-    res.status(404).json({error: "item not found"});
+  const todoIndex = todos.findIndex((todo) => todo.id === id);
+  if (todoIndex !== -1) {
+    todos.splice(todoIndex, 1);
+    res.status(200).json({ message: "item deleted successfully" });
+  } else {
+    res.status(404).json({ error: "item not found" });
   }
-})
+});
 
 app.listen(3000, () => {
-  console.log('Server is running on port 3000');
+  console.log("Server is running on port 3000");
 });
 module.exports = app;
